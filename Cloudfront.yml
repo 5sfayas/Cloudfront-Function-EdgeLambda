@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: CloudFront CDN Deployment Stack
+Metadata:
+  Author: Fayas Akram
+
+Parameters:
+  EnvType:
+    Description: Environment type.
+    Default: stage
+    Type: String
+    AllowedValues:
+      - production
+      - stage
+    ConstraintDescription: must specify the environment.
+
+Mappings: 
+  EnvType:
+    stage:  
+      DomainName: 'stage.fayas.com'
+      ACMArn: 'arn:aws:acm:us-east-1:AccountID:certificate/21342cd-62e2-45fg-98b6-12456h4fdf'
+      PhoenixLambdaRoleArn: 'arn:aws:iam::<AccountID>:role/redirect-edge-lambda'
+    production:  
+      DomainName: 'fayas.com'
+      ACMArn: 'arn:aws:acm:us-east-1:AccountID:certificate/21342cd-62e2-45fg-98b6-12456h4fdf'
+      PhoenixLambdaRoleArn: 'arn:aws:iam::<AccountID>:role/redirect-edge-lambda'
