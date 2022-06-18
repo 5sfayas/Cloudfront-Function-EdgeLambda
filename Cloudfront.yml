@@ -126,3 +126,42 @@ Resources:
     Type: AWS::Lambda::Version
     Properties:
       FunctionName: !GetAtt RedirectEdgeLambda.Arn
+  
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig: 
+        Aliases:
+          - !FindInMap [EnvType, !Ref EnvType, DomainName]
+        Comment: !Sub '${EnvType}-cdn'
+        Enabled: true
+        HttpVersion: http2
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          AcmCertificateArn: !FindInMap [EnvType, !Ref EnvType, ACMArn]
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - 'GET'
+            - 'HEAD'
+          Compress: true
+          CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6'
+          LambdaFunctionAssociations:
+                - 
+                  EventType: viewer-request
+                  LambdaFunctionARN: !Join
+                    - ':'
+                    - - !GetAtt [RedirectEdgeLambda, Arn]
+                      - !GetAtt [RedirectEdgeLambdaVersion, Version]
+          # FunctionAssociations:
+          #   - EventType: viewer-request
+          #     FunctionARN: !GetAtt CloudFrontFunction.FunctionMetadata.FunctionARN
+          SmoothStreaming: false
+          TargetOriginId: !Sub '${EnvType}.s3-website-us-east-1.amazonaws.com'
+          ViewerProtocolPolicy : allow-all
+        Origins:
+          - Id: !Sub '${EnvType}.s3-website-us-east-1.amazonaws.com'
+            DomainName: !Sub '${EnvType}.s3-website-us-east-1.amazonaws.com'
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
