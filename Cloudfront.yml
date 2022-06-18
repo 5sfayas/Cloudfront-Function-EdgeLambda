@@ -24,3 +24,47 @@ Mappings:
       DomainName: 'fayas.com'
       ACMArn: 'arn:aws:acm:us-east-1:AccountID:certificate/21342cd-62e2-45fg-98b6-12456h4fdf'
       LambdaRoleArn: 'arn:aws:iam::<AccountID>:role/redirect-edge-lambda'
+
+Resources:
+  CloudFrontFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub '${EnvType}-redirects function'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: !Sub '${EnvType}-redicts-function'
+        Runtime: cloudfront-js-1.0
+      FunctionCode:
+        Fn::Sub:
+          - |
+            function handler(event) {
+              var request = event.request;
+              
+              var mapping = {
+                "/who": "https://${Domain}/fayas-akram/",
+                "/about-me": "https://${Domain}/fayas-akram/",
+                "/home": "https://${Domain}/",
+                "/root": "https://${Domain}/"
+              }
+              var redirectURL = mapping[request.uri];
+
+              if (!!redirectURL) {
+                  var response = {
+                      statusCode: 301,
+                      statusDescription: 'Moved Permanently',
+                      headers: {
+                          'location': {
+                              "value": redirectURL,
+                          },
+                          'cache-control': { "value": "max-age=3600" }
+                      },
+                  };
+                  return response;
+              }
+              else {
+                    return request;
+                }
+            }
+          - {
+              Domain: !FindInMap [EnvType, !Ref EnvType, DomainName]
+            }
