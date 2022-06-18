@@ -7,12 +7,12 @@ node {
         stage( 'Checkout Repositories' ) {
             checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'App']], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '<crednetial>', url: 'git@github.com:<yourgit>/app.git']]]
         }
-        
+
         stage( 'Build App' ) {
             sh '''
                 cd $WORKSPACE/App
                 npm ci
-                npm run build:dev1 
+                npm run build 
             '''
         }
 
